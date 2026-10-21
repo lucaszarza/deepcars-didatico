@@ -12,6 +12,12 @@ PASSO 3 - Os carros aprendendo a dirigir (evolução com mutações aleatórias)
 
 Ninguém ensina o carro a dirigir. Os bons genes só sobrevivem e se espalham.
 
+PISTAS ALEATÓRIAS (experimento D): com --aleatorias N, a cada geração são sorteadas N pistas
+novas. O cérebro nunca vê duas vezes a mesma pista, então não tem padrão fixo para decorar.
+No fim, a elite passa por uma VALIDAÇÃO: corre em pistas novas e o campeão é o que for melhor
+nelas. Sem isso, o "melhor da última geração" costuma ser só um mutante com sorte nas
+duas pistas daquela geração.
+
 TREINAR EM VÁRIAS PISTAS (experimento C): com --pistas a, b, c, cada cérebro corre
 em TODAS essas pistas ao mesmo tempo, e a nota é a MÉDIA das voltas. Assim ele não
 consegue "decorar" uma pista só. Depois teste em pistas que ficaram de fora
@@ -27,6 +33,7 @@ Teclas:  ESPAÇO = modo turbo   TAB = troca a pista que aparece na tela   ESC = 
 Rode:    .venv/bin/python 03_evolucao.py
 Opções:  --geracoes N          para depois de N gerações
          --pistas a,b,c        pistas de treino, separadas por vírgula (veja pista.py)
+         --aleatorias N        sorteia N pistas novas a cada geração (ignora --pistas)
          --sem-janela          treina sem desenhar, muito mais rápido
          --turbo               abre a janela já em modo turbo
 Exemplo: .venv/bin/python 03_evolucao.py --pistas treino,suave,muitas_curvas
@@ -42,7 +49,7 @@ import genoma_io
 import grafico
 import sprite
 from carro import Carro, rede
-from pista import PISTAS
+from pista import PISTAS, pista_aleatoria
 
 # ----------------------------- configurações -----------------------------
 LARGURA, ALTURA = 900, 700
@@ -78,6 +85,29 @@ def mutar(genoma):
             peso += random.gauss(0, FORCA_MUTACAO)
         novo.append(peso)
     return novo
+
+
+def escolher_por_validacao(elite, quantidade=12):
+    """Testa cada cérebro da elite em pistas NOVAS (nunca vistas) e devolve o melhor.
+
+    É o "conjunto de validação" do aprendizado de máquina: a nota do treino pode ser
+    sorte, a nota em dados novos mostra quem realmente generalizou.
+    """
+    pistas_val = sortear_pistas(quantidade)
+    resultados = []
+    for genoma in elite:
+        carros = [Carro(genoma, p) for p in pistas_val]
+        for _ in range(MAX_QUADROS):
+            if not any(c.vivo for c in carros):
+                break
+            for c in carros:
+                c.atualizar()
+        media = sum(c.voltas for c in carros) / len(carros)
+        completou = sum(c.vivo for c in carros)      # vivo ao fim = aguentou o tempo todo
+        resultados.append((media, completou, genoma))
+        print(f"  cérebro {len(resultados):2d}: {completou:2d}/{quantidade} pistas novas completas "
+              f"(média {media:.2f} voltas)", flush=True)
+    return max(resultados, key=lambda r: r[0]), quantidade
 
 
 def proxima_geracao(genomas, pontos):
@@ -123,7 +153,7 @@ def desenhar(tela, fonte, fonte_pequena, pistas, visivel, grupos, geracao, recor
 
 
 def main(args):
-    pistas = [PISTAS[nome] for nome in args.pistas]
+    pistas = sortear_pistas(args.aleatorias) if args.aleatorias else [PISTAS[nome] for nome in args.pistas]
     os.makedirs(PASTA, exist_ok=True)
 
     tela = None
@@ -139,7 +169,7 @@ def main(args):
     genomas = [rede.pesos_aleatorios() for _ in range(POPULACAO)]
     grupos = criar_grupos(genomas, pistas)
     geracao, quadro, recorde, turbo, visivel = 1, 0, 0.0, args.turbo, 0
-    hist_melhor, hist_media = [], []
+    hist_melhor, hist_media, elite_atual = [], [], []
 
     with open(CAMINHO_HISTORICO, "w", newline="", encoding="utf-8") as arq_csv:
         escritor = csv.writer(arq_csv)
@@ -170,17 +200,21 @@ def main(args):
                         i_melhor = max(range(POPULACAO), key=lambda i: pontos[i])
                         melhor_nota = pontos[i_melhor]
                         media = sum(pontos) / len(pontos)
+                        ordem = sorted(range(POPULACAO), key=lambda i: pontos[i], reverse=True)
+                        elite_atual = [genomas[i] for i in ordem[:QTD_ELITE]]
                         hist_melhor.append(melhor_nota)
                         hist_media.append(media)
                         escritor.writerow([geracao, f"{melhor_nota:.3f}", f"{media:.3f}"])
                         arq_csv.flush()
 
-                        if melhor_nota > recorde:             # EXPERIMENTO A: guarda o campeão
-                            recorde = melhor_nota
+                        # EXPERIMENTO A: guarda o campeão. Com pistas aleatórias a pista muda a cada
+                        # geração, então o recorde não é comparável: guarda o melhor da geração atual.
+                        if args.aleatorias or melhor_nota > recorde:
+                            recorde = max(recorde, melhor_nota)
                             genoma_io.salvar_campeao(
                                 CAMINHO_CAMPEAO, genomas[i_melhor],
                                 geracao=geracao, voltas=round(melhor_nota, 3),
-                                pistas=[p.nome for p in pistas],
+                                pistas=["aleatorias"] if args.aleatorias else [p.nome for p in pistas],
                             )
                         por_pista = " | ".join(
                             f"{p.nome} {grupo[i_melhor].voltas:.2f}" for p, grupo in zip(pistas, grupos))
@@ -190,6 +224,9 @@ def main(args):
                         if args.geracoes and geracao >= args.geracoes:
                             return
                         genomas = proxima_geracao(genomas, pontos)
+                        if args.aleatorias:
+                            pistas = sortear_pistas(args.aleatorias)
+                            visivel = min(visivel, len(pistas) - 1)
                         grupos = criar_grupos(genomas, pistas)
                         geracao += 1
                         quadro = 0
@@ -200,9 +237,21 @@ def main(args):
                              quadro, hist_melhor, hist_media)
                     relogio.tick(60)
         finally:
+            if args.aleatorias and elite_atual:
+                print("\nValidação: a elite corre em pistas novas...", flush=True)
+                (media, completou, genoma), total = escolher_por_validacao(elite_atual)
+                genoma_io.salvar_campeao(
+                    CAMINHO_CAMPEAO, genoma, geracao=geracao, voltas=round(media, 3),
+                    pistas=["aleatorias"], validacao=f"{completou}/{total} pistas novas completas",
+                )
+                print(f"Campeão escolhido pela validação: {completou}/{total} pistas novas completas")
             if hist_melhor:
                 grafico.salvar_png(CAMINHO_GRAFICO, hist_melhor, hist_media)   # EXPERIMENTO E
                 print(f"\nSalvo em {PASTA}/: campeao.json, historico.csv, curva_aprendizado.png")
+
+
+def sortear_pistas(quantidade):
+    return [pista_aleatoria(f"sorteada_{i + 1}") for i in range(quantidade)]
 
 
 def lista_de_pistas(texto):
@@ -218,6 +267,8 @@ if __name__ == "__main__":
     analisador.add_argument("--geracoes", type=int, default=0, help="para depois de N gerações")
     analisador.add_argument("--pistas", type=lista_de_pistas, default=["treino"],
                             help="pistas de treino, separadas por vírgula (padrão: treino)")
+    analisador.add_argument("--aleatorias", type=int, default=0, metavar="N",
+                            help="sorteia N pistas novas a cada geração (ignora --pistas)")
     analisador.add_argument("--sem-janela", action="store_true", help="treina sem desenhar (rápido)")
     analisador.add_argument("--turbo", action="store_true", help="já começa em modo turbo (ESPAÇO alterna)")
     main(analisador.parse_args())

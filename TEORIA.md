@@ -252,10 +252,27 @@ Este cérebro **não generalizou**: dirige bem nas pistas do treino e bate cedo 
 
 Ressalvas: é uma única execução, e o resultado depende da sorte de cada treino (o campeão de 15 gerações do início passou na `suave`). Para uma conclusão sólida, repita o treino várias vezes e conte quantas vezes o campeão passa na pista inédita. Uma hipótese para o fracasso: a rede decide só pelos 7 sensores e pode ter decorado a sequência fixa de curvas das pistas de treino, em vez de aprender a seguir a parede. Isso leva ao experimento D.
 
-### D. Pistas aleatórias a cada geração
-**O que é:** sortear uma pista nova a cada geração.
-**O que você aprende:** treinar com dados variáveis. Costuma gerar um motorista mais robusto, mas a evolução fica mais lenta e ruidosa.
-**Esforço:** médio.
+### D. Pistas aleatórias a cada geração (implementado)
+**O que é:** a cada geração, sortear pistas novas (`--aleatorias 2`). Os cérebros nunca veem a mesma pista duas vezes, então não dá para decorar o traçado.
+**O que você aprende:** treinar com dados variáveis, e a diferença entre treino e **validação**.
+
+**Primeira tentativa: fracasso instrutivo.** O campeão era "o melhor da última geração", escolhido em apenas 2 pistas. Ele completou só 3 de 20 pistas sorteadas novas e bateu cedo em todas as fixas. Foi a *maldição do vencedor*: entre 100 mutantes, o melhor em 2 pistas costuma ser o que teve sorte nelas.
+
+**Correção: conjunto de validação.** No fim do treino, os 10 melhores cérebros (a elite) correm em 12 pistas novas, e o campeão é o que for melhor nelas. É a mesma ideia de separar dados de treino e de validação em ML.
+
+**Resultado (60 gerações, uma execução):** o campeão completou 12 de 12 pistas de validação e, no teste independente nas 5 pistas fixas, **completou todas**:
+
+| pista | campeão | aleatórios que aguentaram (de 100) |
+|---|---|---|
+| treino | 4,81 voltas | 2 |
+| suave | 5,61 voltas | 2 |
+| muitas_curvas | 5,23 voltas | 1 |
+| estreita | 4,63 voltas | 0 |
+| dificil | 4,71 voltas | 0 |
+
+Isso inclui `estreita` e `dificil`, onde os campeões anteriores batiam em poucos quadros. Também mostra que essas pistas são dirigíveis. O campeão está em `exemplos/campeao_aleatorias.json`.
+
+Ressalva: é uma única execução. Para confirmar que não foi sorte, repita o treino várias vezes e conte quantos campeões passam em todas as pistas.
 
 ### E. Gráfico de aprendizado (implementado)
 **O que é:** guardar o melhor fitness de cada geração e plotar uma curva.

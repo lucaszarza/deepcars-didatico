@@ -54,6 +54,7 @@ O passo 4 usa o campeão gravado por você em `resultados/campeao.json` e, se el
 | `--geracoes N` | Para depois de N gerações |
 | `--pistas A,B,C` | Pistas de treino, separadas por vírgula: `treino` (padrão), `suave`, `muitas_curvas`, `estreita`, `dificil`. Com mais de uma, cada cérebro corre em todas e a nota é a média |
 | `--sem-janela` | Treina sem desenhar, bem mais rápido |
+| `--aleatorias N` | Sorteia N pistas novas a cada geração (em vez de `--pistas`). No fim, a elite é testada em 12 pistas novas e o campeão é o melhor nessa validação |
 | `--turbo` | Abre a janela já em modo turbo |
 
 Exemplos:
@@ -61,6 +62,7 @@ Exemplos:
 ```bash
 .venv/bin/python 03_evolucao.py --sem-janela --geracoes 20
 .venv/bin/python 03_evolucao.py --pistas treino,suave,muitas_curvas   # treino em 3 pistas
+.venv/bin/python 03_evolucao.py --aleatorias 2 --geracoes 60           # pistas aleatórias
 ```
 
 ### Opções do `04_teste_em_outra_pista.py`
@@ -93,7 +95,7 @@ sprite.py        o desenho do carrinho
 pista.py         as pistas
 genoma_io.py     salvar e carregar o campeão
 grafico.py       o gráfico de aprendizado
-exemplos/        dois campeões prontos (uma pista e três pistas) e a curva de um treino
+exemplos/        três campeões prontos (uma pista, três pistas e pistas aleatórias) e a curva de um treino
 TEORIA.md        a explicação teórica
 ```
 

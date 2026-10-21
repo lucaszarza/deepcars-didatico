@@ -19,6 +19,7 @@ pistas que o campeão nunca viu, usadas no teste de generalização
 (04_teste_em_outra_pista.py).
 """
 import math
+import random
 
 import pygame
 
@@ -68,3 +69,19 @@ PISTAS = {p.nome: p for p in [
     Pista("estreita",      220,  55,    50,   4),   # mesmo formato do treino, menos espaço
     Pista("dificil",       215,  50,    60,   5),   # curvas fortes e frequentes
 ]}
+
+
+def pista_aleatoria(nome):
+    """Sorteia uma pista nova, com formato parecido com as fixas (mas nunca igual).
+
+    Os limites evitam pistas impossíveis: quanto mais curvas, menor a ondulação, e
+    a largura nunca fica estreita demais para o carro.
+    """
+    curvas = random.randint(3, 6)
+    return Pista(
+        nome,
+        raio_medio=random.uniform(205, 225),
+        ondulacao=random.uniform(25, min(60, 200 / curvas)),
+        largura=random.uniform(60, 95),
+        curvas=curvas,
+    )
