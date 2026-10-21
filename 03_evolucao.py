@@ -26,7 +26,6 @@ Opções:  --geracoes N     para depois de N gerações
 """
 import argparse
 import csv
-import math
 import os
 import random
 
@@ -34,7 +33,8 @@ import pygame
 
 import genoma_io
 import grafico
-from carro import ALCANCE_SENSOR, ANGULOS_SENSORES, Carro, rede
+import sprite
+from carro import Carro, rede
 from pista import PISTAS
 
 # ----------------------------- configurações -----------------------------
@@ -80,18 +80,12 @@ def desenhar(tela, fonte, fonte_pequena, pista, carros, geracao, recorde, quadro
     pista.desenhar(tela)
 
     melhor = max(carros, key=lambda c: c.voltas)
-    for c in carros:
-        cor = (90, 200, 120) if c.vivo else (110, 60, 60)
-        pygame.draw.circle(tela, cor, (int(c.x), int(c.y)), 4 if c.vivo else 2)
+    for i, c in enumerate(carros):
+        sprite.desenhar_carro(tela, c, sprite.cor_do_carro(i), destaque=(c is melhor))
 
     # mostra os sensores do melhor carro vivo, para entender o que ele "vê"
     if melhor.vivo:
-        for graus, leitura in zip(ANGULOS_SENSORES, melhor.sensores):
-            d = math.radians(graus) + melhor.angulo
-            fim = (melhor.x + math.cos(d) * leitura * ALCANCE_SENSOR,
-                   melhor.y + math.sin(d) * leitura * ALCANCE_SENSOR)
-            pygame.draw.line(tela, (240, 220, 80), (melhor.x, melhor.y), fim, 1)
-        pygame.draw.circle(tela, (255, 255, 255), (int(melhor.x), int(melhor.y)), 6, 2)
+        sprite.desenhar_sensores(tela, melhor)
 
     linhas = [
         f"Pista: {pista.nome}",

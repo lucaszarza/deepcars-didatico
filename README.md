@@ -31,15 +31,20 @@ Os arquivos são numerados para serem lidos e executados em ordem:
 | `01_neuronio.py` | Um neurônio, com as contas na tela | `python3 01_neuronio.py` |
 | `02_rede.py` | A rede neural completa de um carro | `python3 02_rede.py` |
 | `03_evolucao.py` | A simulação com 100 carros evoluindo | `.venv/bin/python 03_evolucao.py` |
+| `04_teste_em_outra_pista.py` | O campeão em pistas que ele nunca viu | `.venv/bin/python 04_teste_em_outra_pista.py` |
 
-Os dois primeiros só usam a biblioteca padrão do Python. Só o terceiro precisa do `pygame`.
+Os dois primeiros só usam a biblioteca padrão do Python. Os outros precisam do `pygame`.
 
-### Controles da simulação
+O passo 4 usa o campeão gravado por você em `resultados/campeao.json` e, se ele não existir, o `exemplos/campeao_exemplo.json`, que já vem no repositório. Dá para testar o passo 4 sem treinar antes.
 
-| Tecla | Ação |
-|---|---|
-| `ESPAÇO` | Liga ou desliga o modo turbo |
-| `ESC` | Sai |
+### Controles das janelas
+
+| Tecla | Ação | Janela |
+|---|---|---|
+| `ESPAÇO` | Liga ou desliga o modo turbo | passos 3 e 4 |
+| `1` a `5` | Troca de pista | passo 4 |
+| `R` | Recomeça a corrida | passo 4 |
+| `ESC` | Sai | passos 3 e 4 |
 
 ### Opções do `03_evolucao.py`
 
@@ -50,6 +55,14 @@ Os dois primeiros só usam a biblioteca padrão do Python. Só o terceiro precis
 | `--sem-janela` | Treina sem desenhar, bem mais rápido |
 
 Exemplo: `.venv/bin/python 03_evolucao.py --sem-janela --geracoes 20`
+
+### Opções do `04_teste_em_outra_pista.py`
+
+| Opção | Efeito |
+|---|---|
+| `ARQUIVO.json` | Usa outro campeão, em vez do padrão |
+| `--relatorio` | Mostra uma tabela no terminal, sem abrir janela |
+| `--pista NOME` | Pista em que a janela começa |
 
 ### O que a simulação grava
 
@@ -67,10 +80,13 @@ Na pasta `resultados/`, criada ao rodar:
 01_neuronio.py   o neurônio
 02_rede.py       a rede neural
 03_evolucao.py   a simulação e a evolução
+04_teste_em_outra_pista.py   o campeão em outras pistas
 carro.py         o carro: sensores, cérebro e movimento
+sprite.py        o desenho do carrinho
 pista.py         as pistas
 genoma_io.py     salvar e carregar o campeão
 grafico.py       o gráfico de aprendizado
+exemplos/        um campeão pronto e a curva de um treino de 80 gerações
 TEORIA.md        a explicação teórica
 ```
 

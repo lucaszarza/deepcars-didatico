@@ -10,6 +10,9 @@ O que observar: o melhor sobe rápido nas primeiras gerações e depois estabili
 (platô). A média sobe mais devagar, porque a população ainda tem muitos mutantes
 que erram.
 """
+import struct
+import zlib
+
 import pygame
 
 COR_FUNDO = (35, 35, 42)
@@ -57,4 +60,21 @@ def salvar_png(caminho, melhores, medias):
     desenhar_grafico(imagem, imagem.get_rect(), melhores, medias, fonte)
     legenda_y = 4
     imagem.blit(fonte.render("verde = melhor   azul = média", True, COR_TEXTO), (400, legenda_y))
-    pygame.image.save(imagem, caminho)
+    _gravar_png(caminho, imagem)
+
+
+def _gravar_png(caminho, superficie):
+    # Alguns pygame vêm sem suporte a salvar PNG (pygame.image.save falha),
+    # então o PNG é montado à mão: cabeçalho + pixels comprimidos com zlib.
+    largura, altura = superficie.get_size()
+    pixels = pygame.image.tostring(superficie, "RGB")
+    linhas = b"".join(b"\x00" + pixels[y * largura * 3:(y + 1) * largura * 3] for y in range(altura))
+
+    def bloco(tipo, dados):
+        corpo = tipo + dados
+        return struct.pack(">I", len(dados)) + corpo + struct.pack(">I", zlib.crc32(corpo) & 0xFFFFFFFF)
+
+    cabecalho = struct.pack(">IIBBBBB", largura, altura, 8, 2, 0, 0, 0)  # 8 bits, RGB
+    with open(caminho, "wb") as arquivo:
+        arquivo.write(b"\x89PNG\r\n\x1a\n" + bloco(b"IHDR", cabecalho)
+                      + bloco(b"IDAT", zlib.compress(linhas)) + bloco(b"IEND", b""))

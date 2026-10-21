@@ -86,7 +86,7 @@ Essa lista é chamada de **genoma** no código, porque é ela que passa de pai p
 
 Em cada quadro da simulação (`Carro.atualizar`):
 
-1. Os sensores lançam raios e medem a distância até a parede.
+1. Cada sensor lança um raio a partir de um ponto da carroceria (quinas, para-choque, laterais) e mede a distância até a parede.
 2. Essas 7 leituras entram na rede (`rede.pensar`).
 3. A rede devolve um valor de volante entre -1 e 1.
 4. O carro vira o ângulo proporcionalmente e anda 4 pixels.
@@ -176,7 +176,7 @@ Isso mostra um ponto importante: **o fitness define o que a evolução procura, 
 
 Esta é a parte de "o que fazer a seguir". Está ordenada do mais simples ao mais ambicioso.
 
-**Estado atual:** A e E já estão no código. B ainda não foi implementado. Os demais são ideias.
+**Estado atual:** A, B e E já estão no código. Os demais são ideias.
 
 ### A. Salvar e carregar os vencedores (implementado)
 **O que é:** gravar em arquivo (JSON) o genoma dos melhores carros ao final de cada geração (ou do recorde geral) e poder carregá-los depois.
@@ -184,7 +184,7 @@ Esta é a parte de "o que fazer a seguir". Está ordenada do mais simples ao mai
 **Esforço:** pequeno.
 **Onde:** `genoma_io.py`. O `03_evolucao.py` grava `resultados/campeao.json` sempre que bate o recorde.
 
-### B. Testar os vencedores em outra pista (generalização) (a fazer)
+### B. Testar os vencedores em outra pista (generalização) (implementado)
 **O que é:** treinar em uma pista, salvar o campeão e colocá-lo numa pista nova que ele nunca viu: outro número de curvas, outra largura, um formato diferente.
 **A pergunta:** o carro aprendeu **a dirigir** ou só **a decorar aquela pista**?
 **O que você aprende:**
@@ -193,7 +193,28 @@ Esta é a parte de "o que fazer a seguir". Está ordenada do mais simples ao mai
 - A diferença entre **treino** e **teste**, conceito central em ML.
 
 **Hipótese para testar:** como o carro só enxerga os sensores (não "sabe" a forma da pista), ele pode generalizar razoavelmente para curvas parecidas, mas falhar em curvas bem mais fechadas do que as que viu.
-**Esforço:** pequeno a médio. Já existem as pistas extras em `pista.py` e o carregamento do campeão; falta o script que roda o teste.
+**Esforço:** pequeno a médio.
+**Onde:** `04_teste_em_outra_pista.py`, com as pistas extras em `pista.py`.
+
+**Resultado de um treino real** (80 gerações na pista `treino`, campeão em `exemplos/campeao_exemplo.json`):
+
+| Pista | Campeão | Cérebros aleatórios que aguentaram (de 100) |
+|---|---|---|
+| treino | completou, 4,96 voltas | 2 |
+| suave | bateu no quadro 106 | 2 |
+| muitas_curvas | bateu no quadro 55 | 1 |
+| estreita | bateu no quadro 18 | 0 |
+| dificil | bateu no quadro 39 | 0 |
+
+Este campeão dirige bem só na pista em que treinou e bate em todas as outras, até na `suave`, que é parecida: é **overfitting**. A nota dele (voltas na pista de treino) era ótima, mas ela só media o desempenho naquela pista.
+
+Dois cuidados ao ler isso:
+- **O resultado varia de treino para treino.** Em um treino mais curto (15 gerações), o campeão passou na `suave` e na `muitas_curvas`. Uma execução só não prova nada, e repetir com sementes diferentes seria o próximo passo para uma conclusão sólida.
+- **A comparação com cérebros aleatórios tem ruído.** Com sorte, 2 a 4 cérebros aleatórios em 100 aguentam uma pista fácil. Por isso a tabela conta quantos aguentam, e não só o melhor.
+
+Nesta curva (`exemplos/curva_aprendizado.png`), o melhor carro chega perto do teto já na geração 11 e depois quase não muda, enquanto a média oscila por causa das mutações. Mais gerações não resolvem o overfitting: o que falta é variedade nos dados de treino (experimento C).
+
+![Curva de aprendizado](exemplos/curva_aprendizado.png)
 
 ### C. Treinar em várias pistas ao mesmo tempo
 **O que é:** em vez de uma pista, avaliar cada carro em 2 ou 3 pistas e usar a média como nota.
