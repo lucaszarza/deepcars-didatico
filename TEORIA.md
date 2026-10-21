@@ -238,6 +238,20 @@ O que isso mostra e o que **não** mostra:
 - **Não mostra** que ele generalizou para pistas novas: nas duas inéditas ele bate logo, como o outro. Mas `estreita` e `dificil` são mais apertadas e curvas mais fortes do que qualquer pista do treino, então pode ser pedir demais. Também não verifiquei se um carro desse tamanho consegue dirigir nelas. Um teste mais justo seria deixar de fora uma pista de dificuldade parecida com as do treino.
 - **Armadilha da média:** na geração 1 o melhor cérebro tinha 5,19 voltas na `suave` e 0,15 na `treino`. A média premia esse "especialista", e só com as gerações ele perde para quem anda bem em todas. Se a nota fosse o **pior** resultado entre as pistas, esse atalho não existiria.
 
+**Teste mais justo:** treinar só em `treino` e `muitas_curvas` (40 gerações) e testar na `suave`, uma pista de dificuldade parecida que ficou de fora.
+
+| Pista | Campeão |
+|---|---|
+| treino (usada no treino) | completou, 4,90 voltas |
+| muitas_curvas (usada no treino) | completou, 5,31 voltas |
+| **suave (inédita)** | **bateu no quadro 112, 0,33 volta** |
+| estreita (inédita) | bateu no quadro 279, 0,72 volta |
+| dificil (inédita) | bateu no quadro 45, 0,09 volta |
+
+Este cérebro **não generalizou**: dirige bem nas pistas do treino e bate cedo numa pista parecida que nunca viu. É overfitting, agora medido com um teste justo.
+
+Ressalvas: é uma única execução, e o resultado depende da sorte de cada treino (o campeão de 15 gerações do início passou na `suave`). Para uma conclusão sólida, repita o treino várias vezes e conte quantas vezes o campeão passa na pista inédita. Uma hipótese para o fracasso: a rede decide só pelos 7 sensores e pode ter decorado a sequência fixa de curvas das pistas de treino, em vez de aprender a seguir a parede. Isso leva ao experimento D.
+
 ### D. Pistas aleatórias a cada geração
 **O que é:** sortear uma pista nova a cada geração.
 **O que você aprende:** treinar com dados variáveis. Costuma gerar um motorista mais robusto, mas a evolução fica mais lenta e ruidosa.

@@ -28,6 +28,7 @@ Rode:    .venv/bin/python 03_evolucao.py
 Opções:  --geracoes N          para depois de N gerações
          --pistas a,b,c        pistas de treino, separadas por vírgula (veja pista.py)
          --sem-janela          treina sem desenhar, muito mais rápido
+         --turbo               abre a janela já em modo turbo
 Exemplo: .venv/bin/python 03_evolucao.py --pistas treino,suave,muitas_curvas
 """
 import argparse
@@ -137,7 +138,7 @@ def main(args):
 
     genomas = [rede.pesos_aleatorios() for _ in range(POPULACAO)]
     grupos = criar_grupos(genomas, pistas)
-    geracao, quadro, recorde, turbo, visivel = 1, 0, 0.0, False, 0
+    geracao, quadro, recorde, turbo, visivel = 1, 0, 0.0, args.turbo, 0
     hist_melhor, hist_media = [], []
 
     with open(CAMINHO_HISTORICO, "w", newline="", encoding="utf-8") as arq_csv:
@@ -218,5 +219,6 @@ if __name__ == "__main__":
     analisador.add_argument("--pistas", type=lista_de_pistas, default=["treino"],
                             help="pistas de treino, separadas por vírgula (padrão: treino)")
     analisador.add_argument("--sem-janela", action="store_true", help="treina sem desenhar (rápido)")
+    analisador.add_argument("--turbo", action="store_true", help="já começa em modo turbo (ESPAÇO alterna)")
     main(analisador.parse_args())
     pygame.quit()

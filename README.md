@@ -54,6 +54,7 @@ O passo 4 usa o campeão gravado por você em `resultados/campeao.json` e, se el
 | `--geracoes N` | Para depois de N gerações |
 | `--pistas A,B,C` | Pistas de treino, separadas por vírgula: `treino` (padrão), `suave`, `muitas_curvas`, `estreita`, `dificil`. Com mais de uma, cada cérebro corre em todas e a nota é a média |
 | `--sem-janela` | Treina sem desenhar, bem mais rápido |
+| `--turbo` | Abre a janela já em modo turbo |
 
 Exemplos:
 
