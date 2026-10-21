@@ -79,6 +79,8 @@ def descrever(carro):
 def relatorio(genoma, info):
     random.seed(1)  # a comparação com os aleatórios fica repetível
     print(f"Campeão: {info}\n")
+    # campeões antigos guardam só "pista"; os novos guardam a lista "pistas"
+    treinadas = info.get("pistas") or [info.get("pista")]
     print(f"{'pista':<14} | {'campeão':<36} | aleatórios que aguentaram (de {N_BASE})")
     print("-" * 88)
     for pista in PISTAS.values():
@@ -86,7 +88,7 @@ def relatorio(genoma, info):
         # conta quantos cérebros SEM treino aguentam o tempo todo: com sorte alguns
         # aguentam, por isso o número de sobreviventes diz mais que "o melhor deles"
         aguentaram = sum(correr(rede.pesos_aleatorios(), pista).vivo for _ in range(N_BASE))
-        marca = "  (pista de treino)" if pista.nome == info.get("pista") else ""
+        marca = "  (usada no treino)" if pista.nome in treinadas else "  (inédita)"
         print(f"{pista.nome:<14} | {descrever(campeao):<36} | {aguentaram}{marca}", flush=True)
 
 

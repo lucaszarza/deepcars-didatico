@@ -42,6 +42,7 @@ O passo 4 usa o campeão gravado por você em `resultados/campeao.json` e, se el
 | Tecla | Ação | Janela |
 |---|---|---|
 | `ESPAÇO` | Liga ou desliga o modo turbo | passos 3 e 4 |
+| `TAB` | Troca a pista que aparece (treino em várias pistas) | passo 3 |
 | `1` a `5` | Troca de pista | passo 4 |
 | `R` | Recomeça a corrida | passo 4 |
 | `ESC` | Sai | passos 3 e 4 |
@@ -51,10 +52,15 @@ O passo 4 usa o campeão gravado por você em `resultados/campeao.json` e, se el
 | Opção | Efeito |
 |---|---|
 | `--geracoes N` | Para depois de N gerações |
-| `--pista NOME` | Treina em outra pista: `treino` (padrão), `suave`, `muitas_curvas`, `estreita` ou `dificil` |
+| `--pistas A,B,C` | Pistas de treino, separadas por vírgula: `treino` (padrão), `suave`, `muitas_curvas`, `estreita`, `dificil`. Com mais de uma, cada cérebro corre em todas e a nota é a média |
 | `--sem-janela` | Treina sem desenhar, bem mais rápido |
 
-Exemplo: `.venv/bin/python 03_evolucao.py --sem-janela --geracoes 20`
+Exemplos:
+
+```bash
+.venv/bin/python 03_evolucao.py --sem-janela --geracoes 20
+.venv/bin/python 03_evolucao.py --pistas treino,suave,muitas_curvas   # treino em 3 pistas
+```
 
 ### Opções do `04_teste_em_outra_pista.py`
 
@@ -86,7 +92,7 @@ sprite.py        o desenho do carrinho
 pista.py         as pistas
 genoma_io.py     salvar e carregar o campeão
 grafico.py       o gráfico de aprendizado
-exemplos/        um campeão pronto e a curva de um treino de 80 gerações
+exemplos/        dois campeões prontos (uma pista e três pistas) e a curva de um treino
 TEORIA.md        a explicação teórica
 ```
 

@@ -12,17 +12,23 @@ PASSO 3 - Os carros aprendendo a dirigir (evolução com mutações aleatórias)
 
 Ninguém ensina o carro a dirigir. Os bons genes só sobrevivem e se espalham.
 
+TREINAR EM VÁRIAS PISTAS (experimento C): com --pistas a, b, c, cada cérebro corre
+em TODAS essas pistas ao mesmo tempo, e a nota é a MÉDIA das voltas. Assim ele não
+consegue "decorar" uma pista só. Depois teste em pistas que ficaram de fora
+(04_teste_em_outra_pista.py) para ver se ele generalizou.
+
 O que este script grava em resultados/ (veja a pasta depois de rodar):
-  - campeao.json            o melhor carro até agora (experimento A)
+  - campeao.json            o melhor cérebro até agora (experimento A)
   - historico.csv           nota de cada geração (experimento E)
   - curva_aprendizado.png   o gráfico final (experimento E)
 
-Teclas:  ESPAÇO = modo turbo (acelera a simulação)   ESC = sair
+Teclas:  ESPAÇO = modo turbo   TAB = troca a pista que aparece na tela   ESC = sair
 
 Rode:    .venv/bin/python 03_evolucao.py
-Opções:  --geracoes N     para depois de N gerações
-         --pista NOME     treina em outra pista (veja pista.py)
-         --sem-janela     treina sem desenhar, muito mais rápido
+Opções:  --geracoes N          para depois de N gerações
+         --pistas a,b,c        pistas de treino, separadas por vírgula (veja pista.py)
+         --sem-janela          treina sem desenhar, muito mais rápido
+Exemplo: .venv/bin/python 03_evolucao.py --pistas treino,suave,muitas_curvas
 """
 import argparse
 import csv
@@ -40,7 +46,7 @@ from pista import PISTAS
 # ----------------------------- configurações -----------------------------
 LARGURA, ALTURA = 900, 700
 
-POPULACAO = 100            # quantos carros por geração (o vídeo usa 1000)
+POPULACAO = 100            # quantos cérebros por geração (o vídeo usa 1000)
 MAX_QUADROS = 1800         # tempo máximo de uma geração
 
 QTD_ELITE = 10             # quantos melhores passam direto para a próxima geração
@@ -54,6 +60,16 @@ CAMINHO_GRAFICO = os.path.join(PASTA, "curva_aprendizado.png")
 
 
 # ------------------------------- evolução --------------------------------
+def criar_grupos(genomas, pistas):
+    """Um grupo de carros por pista; o carro i de cada grupo usa o cérebro i."""
+    return [[Carro(g, pista) for g in genomas] for pista in pistas]
+
+
+def notas(grupos):
+    """Nota de cada cérebro = média das voltas dele nas pistas de treino."""
+    return [sum(grupo[i].voltas for grupo in grupos) / len(grupos) for i in range(len(grupos[0]))]
+
+
 def mutar(genoma):
     novo = []
     for peso in genoma:
@@ -63,19 +79,21 @@ def mutar(genoma):
     return novo
 
 
-def proxima_geracao(carros, pista):
-    ordenados = sorted(carros, key=lambda c: c.voltas, reverse=True)
-    elite = [c.genoma for c in ordenados[:QTD_ELITE]]
+def proxima_geracao(genomas, pontos):
+    ordem = sorted(range(len(genomas)), key=lambda i: pontos[i], reverse=True)
+    elite = [genomas[i] for i in ordem[:QTD_ELITE]]
 
     novos = [list(g) for g in elite]               # a elite passa sem mutação
     while len(novos) < POPULACAO:
         pai = random.choice(elite)                 # cópia mutada de um dos melhores
         novos.append(mutar(pai))
-    return [Carro(g, pista) for g in novos]
+    return novos
 
 
 # ------------------------------ desenho/loop -----------------------------
-def desenhar(tela, fonte, fonte_pequena, pista, carros, geracao, recorde, quadro, hist_melhor, hist_media):
+def desenhar(tela, fonte, fonte_pequena, pistas, visivel, grupos, geracao, recorde, quadro,
+             hist_melhor, hist_media):
+    pista, carros = pistas[visivel], grupos[visivel]
     tela.fill((25, 25, 30))
     pista.desenhar(tela)
 
@@ -88,11 +106,11 @@ def desenhar(tela, fonte, fonte_pequena, pista, carros, geracao, recorde, quadro
         sprite.desenhar_sensores(tela, melhor)
 
     linhas = [
-        f"Pista: {pista.nome}",
+        f"Pista: {pista.nome} ({visivel + 1}/{len(pistas)})" + ("  TAB troca" if len(pistas) > 1 else ""),
         f"Geração: {geracao}",
         f"Carros vivos: {sum(c.vivo for c in carros)}/{len(carros)}",
-        f"Melhor desta geração: {melhor.voltas:.2f} voltas",
-        f"Recorde geral: {recorde:.2f} voltas",
+        f"Melhor nesta pista: {melhor.voltas:.2f} voltas",
+        f"Recorde (nota média): {recorde:.2f} voltas",
         f"Quadro: {quadro}/{MAX_QUADROS}",
         "ESPAÇO = turbo | ESC = sair",
     ]
@@ -104,7 +122,7 @@ def desenhar(tela, fonte, fonte_pequena, pista, carros, geracao, recorde, quadro
 
 
 def main(args):
-    pista = PISTAS[args.pista]
+    pistas = [PISTAS[nome] for nome in args.pistas]
     os.makedirs(PASTA, exist_ok=True)
 
     tela = None
@@ -117,8 +135,9 @@ def main(args):
     fonte_pequena = pygame.font.SysFont("monospace", 11)
     relogio = pygame.time.Clock()
 
-    carros = [Carro(rede.pesos_aleatorios(), pista) for _ in range(POPULACAO)]
-    geracao, quadro, recorde, turbo = 1, 0, 0.0, False
+    genomas = [rede.pesos_aleatorios() for _ in range(POPULACAO)]
+    grupos = criar_grupos(genomas, pistas)
+    geracao, quadro, recorde, turbo, visivel = 1, 0, 0.0, False, 0
     hist_melhor, hist_media = [], []
 
     with open(CAMINHO_HISTORICO, "w", newline="", encoding="utf-8") as arq_csv:
@@ -136,38 +155,47 @@ def main(args):
                                 return
                             if evento.key == pygame.K_SPACE:
                                 turbo = not turbo
+                            if evento.key == pygame.K_TAB:
+                                visivel = (visivel + 1) % len(pistas)
 
                 for _ in range(10 if (turbo or tela is None) else 1):
-                    for c in carros:
-                        c.atualizar()
+                    for grupo in grupos:
+                        for c in grupo:
+                            c.atualizar()
                     quadro += 1
 
-                    if quadro >= MAX_QUADROS or not any(c.vivo for c in carros):
-                        melhor = max(carros, key=lambda c: c.voltas)
-                        media = sum(c.voltas for c in carros) / len(carros)
-                        hist_melhor.append(melhor.voltas)
+                    if quadro >= MAX_QUADROS or not any(c.vivo for grupo in grupos for c in grupo):
+                        pontos = notas(grupos)
+                        i_melhor = max(range(POPULACAO), key=lambda i: pontos[i])
+                        melhor_nota = pontos[i_melhor]
+                        media = sum(pontos) / len(pontos)
+                        hist_melhor.append(melhor_nota)
                         hist_media.append(media)
-                        escritor.writerow([geracao, f"{melhor.voltas:.3f}", f"{media:.3f}"])
+                        escritor.writerow([geracao, f"{melhor_nota:.3f}", f"{media:.3f}"])
                         arq_csv.flush()
 
-                        if melhor.voltas > recorde:           # EXPERIMENTO A: guarda o campeão
-                            recorde = melhor.voltas
+                        if melhor_nota > recorde:             # EXPERIMENTO A: guarda o campeão
+                            recorde = melhor_nota
                             genoma_io.salvar_campeao(
-                                CAMINHO_CAMPEAO, melhor.genoma,
-                                geracao=geracao, voltas=round(melhor.voltas, 3), pista=pista.nome,
+                                CAMINHO_CAMPEAO, genomas[i_melhor],
+                                geracao=geracao, voltas=round(melhor_nota, 3),
+                                pistas=[p.nome for p in pistas],
                             )
-                        print(f"Geração {geracao:3d} | melhor: {melhor.voltas:.2f} voltas | "
-                              f"média: {media:.2f} | recorde: {recorde:.2f}", flush=True)
+                        por_pista = " | ".join(
+                            f"{p.nome} {grupo[i_melhor].voltas:.2f}" for p, grupo in zip(pistas, grupos))
+                        print(f"Geração {geracao:3d} | nota: {melhor_nota:.2f} (média da pop.: {media:.2f}) "
+                              f"| melhor cérebro por pista: {por_pista}", flush=True)
 
                         if args.geracoes and geracao >= args.geracoes:
                             return
-                        carros = proxima_geracao(carros, pista)
+                        genomas = proxima_geracao(genomas, pontos)
+                        grupos = criar_grupos(genomas, pistas)
                         geracao += 1
                         quadro = 0
                         break
 
                 if tela is not None:
-                    desenhar(tela, fonte, fonte_pequena, pista, carros, geracao, recorde,
+                    desenhar(tela, fonte, fonte_pequena, pistas, visivel, grupos, geracao, recorde,
                              quadro, hist_melhor, hist_media)
                     relogio.tick(60)
         finally:
@@ -176,10 +204,19 @@ def main(args):
                 print(f"\nSalvo em {PASTA}/: campeao.json, historico.csv, curva_aprendizado.png")
 
 
+def lista_de_pistas(texto):
+    nomes = [n.strip() for n in texto.split(",") if n.strip()]
+    for nome in nomes:
+        if nome not in PISTAS:
+            raise argparse.ArgumentTypeError(f"pista '{nome}' não existe. Opções: {', '.join(PISTAS)}")
+    return nomes
+
+
 if __name__ == "__main__":
     analisador = argparse.ArgumentParser(description="Carros evoluindo (passo 3)")
     analisador.add_argument("--geracoes", type=int, default=0, help="para depois de N gerações")
-    analisador.add_argument("--pista", choices=list(PISTAS), default="treino", help="pista de treino")
+    analisador.add_argument("--pistas", type=lista_de_pistas, default=["treino"],
+                            help="pistas de treino, separadas por vírgula (padrão: treino)")
     analisador.add_argument("--sem-janela", action="store_true", help="treina sem desenhar (rápido)")
     main(analisador.parse_args())
     pygame.quit()

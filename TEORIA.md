@@ -157,7 +157,7 @@ Os de evolução ficam no começo de `03_evolucao.py`; os do carro (velocidade, 
 | `QTD_ELITE` | Poucos pais evoluem rápido, mas perdem diversidade e podem travar | 1, 10, 50 |
 | `CHANCE_MUTACAO` | Com 0 não há evolução. Muito alta destrói o que já funcionava | 0, 0.15, 0.8 |
 | `FORCA_MUTACAO` | Passos pequenos refinam. Passos grandes exploram, mas erram | 0.05, 0.3, 1.5 |
-| Pista (em `pista.py`): ondulação, curvas, largura | Pista mais difícil exige mais gerações | Treinar com `--pista dificil` |
+| Pista (em `pista.py`): ondulação, curvas, largura | Pista mais difícil exige mais gerações | Treinar com `--pistas dificil` |
 | `ANGULOS_SENSORES` (em `carro.py`) | Mais sensores dão mais informação, mas aumentam a rede | Tirar os de ±90° |
 
 > **Nota:** a rede muda de tamanho se você alterar o número de sensores. `N_SENSORES` em `02_rede.py` precisa acompanhar a lista `ANGULOS_SENSORES` em `carro.py`. Mude os dois juntos (o código avisa se estiverem diferentes).
@@ -176,7 +176,7 @@ Isso mostra um ponto importante: **o fitness define o que a evolução procura, 
 
 Esta é a parte de "o que fazer a seguir". Está ordenada do mais simples ao mais ambicioso.
 
-**Estado atual:** A, B e E já estão no código. Os demais são ideias.
+**Estado atual:** A, B, C e E já estão no código. Os demais são ideias.
 
 ### A. Salvar e carregar os vencedores (implementado)
 **O que é:** gravar em arquivo (JSON) o genoma dos melhores carros ao final de cada geração (ou do recorde geral) e poder carregá-los depois.
@@ -216,11 +216,27 @@ Nesta curva (`exemplos/curva_aprendizado.png`), o melhor carro chega perto do te
 
 ![Curva de aprendizado](exemplos/curva_aprendizado.png)
 
-### C. Treinar em várias pistas ao mesmo tempo
+### C. Treinar em várias pistas ao mesmo tempo (implementado)
 **O que é:** em vez de uma pista, avaliar cada carro em 2 ou 3 pistas e usar a média como nota.
 **A pergunta:** isso melhora a generalização do experimento B?
 **O que você aprende:** como a variedade nos dados de treino combate o overfitting.
 **Esforço:** médio.
+**Onde:** `03_evolucao.py --pistas treino,suave,muitas_curvas`. Cada cérebro corre em todas as pistas ao mesmo tempo, e a nota é a média das voltas.
+
+**Resultado** (40 gerações, campeão em `exemplos/campeao_multipista.json`, com `estreita` e `dificil` deixadas de fora do treino):
+
+| Pista | Campeão de várias pistas | Campeão de uma pista só |
+|---|---|---|
+| treino | completou, 4,90 voltas | completou, 4,96 voltas |
+| suave | completou, 5,67 voltas | bateu no quadro 106 |
+| muitas_curvas | completou, 5,28 voltas | bateu no quadro 55 |
+| estreita (inédita) | bateu no quadro 16 | bateu no quadro 18 |
+| dificil (inédita) | bateu no quadro 46 | bateu no quadro 39 |
+
+O que isso mostra e o que **não** mostra:
+- **Mostra:** treinar em várias pistas produz um cérebro que dirige em todas elas. O de uma pista só decorou a sua.
+- **Não mostra** que ele generalizou para pistas novas: nas duas inéditas ele bate logo, como o outro. Mas `estreita` e `dificil` são mais apertadas e curvas mais fortes do que qualquer pista do treino, então pode ser pedir demais. Também não verifiquei se um carro desse tamanho consegue dirigir nelas. Um teste mais justo seria deixar de fora uma pista de dificuldade parecida com as do treino.
+- **Armadilha da média:** na geração 1 o melhor cérebro tinha 5,19 voltas na `suave` e 0,15 na `treino`. A média premia esse "especialista", e só com as gerações ele perde para quem anda bem em todas. Se a nota fosse o **pior** resultado entre as pistas, esse atalho não existiria.
 
 ### D. Pistas aleatórias a cada geração
 **O que é:** sortear uma pista nova a cada geração.
