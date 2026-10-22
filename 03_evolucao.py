@@ -34,6 +34,7 @@ Rode:    .venv/bin/python 03_evolucao.py
 Opções:  --geracoes N          para depois de N gerações
          --pistas a,b,c        pistas de treino, separadas por vírgula (veja pista.py)
          --aleatorias N        sorteia N pistas novas a cada geração (ignora --pistas)
+         --largura-min PX      largura mínima das pistas sorteadas (padrão 60)
          --sem-janela          treina sem desenhar, muito mais rápido
          --turbo               abre a janela já em modo turbo
 Exemplo: .venv/bin/python 03_evolucao.py --pistas treino,suave,muitas_curvas
@@ -250,8 +251,11 @@ def main(args):
                 print(f"\nSalvo em {PASTA}/: campeao.json, historico.csv, curva_aprendizado.png")
 
 
+LARGURA_MIN_SORTEIO = 60   # largura mínima das pistas sorteadas (--largura-min)
+
+
 def sortear_pistas(quantidade):
-    return [pista_aleatoria(f"sorteada_{i + 1}") for i in range(quantidade)]
+    return [pista_aleatoria(f"sorteada_{i + 1}", LARGURA_MIN_SORTEIO) for i in range(quantidade)]
 
 
 def lista_de_pistas(texto):
@@ -269,7 +273,11 @@ if __name__ == "__main__":
                             help="pistas de treino, separadas por vírgula (padrão: treino)")
     analisador.add_argument("--aleatorias", type=int, default=0, metavar="N",
                             help="sorteia N pistas novas a cada geração (ignora --pistas)")
+    analisador.add_argument("--largura-min", type=int, default=60, metavar="PX",
+                            help="largura mínima das pistas sorteadas, de 60 a 95 por padrão (a 'estreita' tem 50)")
     analisador.add_argument("--sem-janela", action="store_true", help="treina sem desenhar (rápido)")
     analisador.add_argument("--turbo", action="store_true", help="já começa em modo turbo (ESPAÇO alterna)")
-    main(analisador.parse_args())
+    argumentos = analisador.parse_args()
+    LARGURA_MIN_SORTEIO = argumentos.largura_min
+    main(argumentos)
     pygame.quit()

@@ -272,7 +272,36 @@ Ressalvas: é uma única execução, e o resultado depende da sorte de cada trei
 
 Isso inclui `estreita` e `dificil`, onde os campeões anteriores batiam em poucos quadros. Também mostra que essas pistas são dirigíveis. O campeão está em `exemplos/campeao_aleatorias.json`.
 
-Ressalva: é uma única execução. Para confirmar que não foi sorte, repita o treino várias vezes e conte quantos campeões passam em todas as pistas.
+**Repetindo o treino 5 vezes (a ressalva se confirmou).** O resultado acima foi, em boa parte, sorte. Cinco treinos novos, com a mesma configuração, deram:
+
+| treino | treino | suave | muitas_curvas | estreita | dificil | fixas completas | validação |
+|---|---|---|---|---|---|---|---|
+| 1 | OK | OK | OK | bateu | bateu | 3/5 | 12/12 |
+| 2 | OK | OK | OK | bateu | bateu | 3/5 | 10/12 |
+| 3 | bateu | OK | OK | bateu | bateu | 2/5 | 6/12 |
+| 4 | bateu | bateu | OK | bateu | bateu | 1/5 | 8/12 |
+| 5 | OK | OK | OK | bateu | bateu | 3/5 | 7/12 |
+
+O que isso mostra:
+- Pistas parecidas com as sorteadas (`muitas_curvas` em 5 de 5, `suave` e `treino` em 3 a 4 de 5) são bem generalizadas.
+- `estreita` e `dificil` não foram completadas em nenhum dos 5 treinos. O campeão que passou em tudo foi um caso raro entre 6 treinos.
+- A nota na validação ajuda um pouco, mas não prevê o resultado: o treino 5 (7/12) empatou com o treino 1 (12/12) nas pistas fixas.
+- Lição de método: **uma única execução não prova nada**. Em ML, repete-se o experimento e se reporta a variação, não o melhor caso.
+
+**Testando a hipótese da largura.** As pistas sorteadas tinham largura de 60 a 95, e a `estreita` tem 50, fora do que o treino cobria. Repeti os 5 treinos com `--largura-min 45` (larguras de 45 a 95):
+
+| treino | treino | suave | muitas_curvas | estreita | dificil | fixas completas | validação |
+|---|---|---|---|---|---|---|---|
+| 1 | OK | OK | OK | OK | bateu | 4/5 | 12/12 |
+| 2 | OK | OK | bateu | bateu | bateu | 2/5 | 11/12 |
+| 3 | OK | OK | bateu | bateu | bateu | 2/5 | 8/12 |
+| 4 | OK | OK | OK | OK | bateu | 4/5 | 12/12 |
+| 5 | OK | bateu | OK | OK | bateu | 3/5 | 9/12 |
+
+- A `estreita` passou de **0 de 5** para **3 de 5** treinos. A hipótese se confirma: o que o carro vê no treino define até onde ele generaliza.
+- A `dificil` continua em 0 de 5. Outra causa provável: ela tem ondulação 50 com 5 curvas, mas o sorteio limita a ondulação a `200 / curvas` = 40. Ela também está fora da faixa treinada (hipótese ainda não testada).
+- Total de pistas fixas completadas: 15 de 25, contra 12 de 25 antes. A diferença é pequena e com 5 amostras não é conclusiva. O ganho claro está na `estreita`.
+- Lição: **cobrir a variação do mundo real nos dados de treino** importa mais do que treinar por mais tempo.
 
 ### E. Gráfico de aprendizado (implementado)
 **O que é:** guardar o melhor fitness de cada geração e plotar uma curva.

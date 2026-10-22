@@ -71,17 +71,17 @@ PISTAS = {p.nome: p for p in [
 ]}
 
 
-def pista_aleatoria(nome):
+def pista_aleatoria(nome, largura_min=60):
     """Sorteia uma pista nova, com formato parecido com as fixas (mas nunca igual).
 
     Os limites evitam pistas impossíveis: quanto mais curvas, menor a ondulação, e
-    a largura nunca fica estreita demais para o carro.
+    a largura nunca fica estreita demais para o carro (largura_min).
     """
     curvas = random.randint(3, 6)
     return Pista(
         nome,
         raio_medio=random.uniform(205, 225),
         ondulacao=random.uniform(25, min(60, 200 / curvas)),
-        largura=random.uniform(60, 95),
+        largura=random.uniform(largura_min, 95),
         curvas=curvas,
     )

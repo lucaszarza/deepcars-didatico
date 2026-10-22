@@ -55,6 +55,7 @@ O passo 4 usa o campeão gravado por você em `resultados/campeao.json` e, se el
 | `--pistas A,B,C` | Pistas de treino, separadas por vírgula: `treino` (padrão), `suave`, `muitas_curvas`, `estreita`, `dificil`. Com mais de uma, cada cérebro corre em todas e a nota é a média |
 | `--sem-janela` | Treina sem desenhar, bem mais rápido |
 | `--aleatorias N` | Sorteia N pistas novas a cada geração (em vez de `--pistas`). No fim, a elite é testada em 12 pistas novas e o campeão é o melhor nessa validação |
+| `--largura-min PX` | Largura mínima das pistas sorteadas por `--aleatorias` (padrão 60; use 45 para cobrir a pista `estreita`) |
 | `--turbo` | Abre a janela já em modo turbo |
 
 Exemplos:
