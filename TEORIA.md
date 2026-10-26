@@ -76,7 +76,9 @@ Cada ligação tem um peso:
 
 - Entrada para escondida: (7 sensores + 1 viés) × 6 neurônios = 48
 - Escondida para saída: (6 neurônios + 1 viés) × 1 saída = 7
-- **Total: 55 pesos.**
+- **Total: 55 pesos** na versão original (só o volante).
+
+> **Atualização:** o experimento I acrescenta uma segunda saída, o acelerador, e a rede passa a ter **62 pesos** (6 neurônios + 1 viés) × 2 saídas = 14 no último trecho). Os campeões antigos de 55 pesos continuam funcionando, com velocidade fixa.
 
 > **Ideia central:** tudo o que o carro "sabe" cabe nessa lista de 55 números. Dirigir bem ou mal depende só deles. Aprender significa **encontrar bons valores para essa lista**.
 
@@ -317,7 +319,7 @@ O que isso mostra:
 | autódromos difíceis | 2/5 | 5/5 | 5/5 |
 
 - A transferência **não é simétrica**. O campeão treinado em anéis dirige quase todos os autódromos normais, mas não os difíceis. Os campeões treinados em autódromos dirigem todos os autódromos, mas falham em boa parte dos anéis.
-- Os autódromos difíceis ainda não são difíceis para quem treinou neles (5/5). O que limita a dificuldade hoje é a velocidade fixa: o carro só controla o volante.
+- Os autódromos difíceis ainda não são difíceis para quem treinou neles (5/5). O que limitava a dificuldade era a velocidade fixa; veja o experimento I.
 **Repetindo 5 vezes o treino nos autódromos difíceis:**
 
 | treino | validação | anéis fixos | 5 autódromos | 5 difíceis |
@@ -331,6 +333,22 @@ O que isso mostra:
 - Nos circuitos, o resultado se **repete**: os 5 treinos completaram os 10 circuitos fixos (os 5 normais e os 5 difíceis). Diferente dos anéis, aqui o resultado não depende da sorte do treino.
 - Nos anéis a variação é grande (1 a 4 em 5). A assimetria é real, mas a causa não foi investigada. Quase todos os fracassos em anéis são batidas logo no começo (cerca de 0,2 volta).
 - Os circuitos difíceis são difíceis para um cérebro sem treino (0 de 500 completaram), mas não para quem treinou neles. Para dificultar de verdade falta controlar a velocidade (freio e acelerador).
+
+### I. Freio e acelerador (implementado)
+**O que é:** a rede ganha uma segunda saída, o acelerador (de -1 a 1: negativo freia, positivo acelera). A velocidade vai de 1,5 a 8 px por quadro, mudando até 0,15 por quadro.
+**Por que é interessante:** a curva mais fechada que o carro faz tem raio igual à velocidade dividida por 0,08. Em velocidade máxima o raio mínimo é 100 px, então uma curva fechada só passa com o carro freando. A rede precisa descobrir sozinha o compromisso entre ir rápido (mais voltas na mesma nota) e não bater. Não há nenhuma regra de "freie na curva".
+**Limitação:** a rede **não recebe a velocidade** como entrada, só os 7 sensores. Ela acelera ou freia olhando as paredes. Dar a velocidade como oitava entrada é uma extensão possível.
+
+**Resultado (100 gerações em autódromos difíceis, uma execução):** o campeão chegou a cerca de 9 voltas por pista em 1800 quadros, contra cerca de 5,5 dos campeões de velocidade fixa, e passou a andar perto da velocidade máxima nas retas.
+
+| campeão | anéis fixos | 5 autódromos | 5 autódromos difíceis | voltas típicas |
+|---|---|---|---|---|
+| velocidade fixa (treino 1 dos difíceis) | 4/5 | 5/5 | 5/5 | 5 a 6 |
+| com acelerador | 2/5 | 5/5 | 4/5 | 8 a 10 |
+
+- Ir mais rápido custou confiabilidade: o campeão com acelerador bateu em um dos 5 difíceis (aos 3 voltas) e completou 11 de 12 pistas na validação.
+- A curva de aprendizado ficou **bem mais ruidosa**: a nota do melhor oscila entre 6 e 11 de uma geração para outra, porque pistas diferentes premiam velocidades diferentes.
+- Ressalva: é uma única execução, e já vimos que isso engana. Faltam as repetições.
 
 ### E. Gráfico de aprendizado (implementado)
 **O que é:** guardar o melhor fitness de cada geração e plotar uma curva.

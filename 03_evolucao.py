@@ -144,7 +144,7 @@ def desenhar(tela, fonte, fonte_pequena, pistas, visivel, grupos, geracao, recor
         f"Pista: {pista.nome} ({visivel + 1}/{len(pistas)})" + ("  TAB troca" if len(pistas) > 1 else ""),
         f"Geração: {geracao}",
         f"Carros vivos: {sum(c.vivo for c in carros)}/{len(carros)}",
-        f"Melhor nesta pista: {melhor.voltas:.2f} voltas",
+        f"Melhor nesta pista: {melhor.voltas:.2f} voltas  (vel. {melhor.velocidade:.1f})",
         f"Recorde (nota média): {recorde:.2f} voltas",
         f"Quadro: {quadro}/{MAX_QUADROS}",
         "ESPAÇO = turbo | ESC = sair",

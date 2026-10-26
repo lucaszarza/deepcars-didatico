@@ -122,7 +122,7 @@ def desenhar(tela, fonte, pistas, indice, campeao, aleatorios, quadro, turbo):
 
     linhas = [
         f"Pista {indice + 1}/{len(pistas)}: {pista.nome}",
-        f"Campeão: {situacao}",
+        f"Campeão: {situacao}  (vel. {campeao.velocidade:.1f})",
         f"Aleatórios vivos: {sum(c.vivo for c in aleatorios)}/{len(aleatorios)}",
         f"Quadro: {min(quadro, MAX_QUADROS)}/{MAX_QUADROS}" + ("   TURBO" if turbo else ""),
         "verde = campeão | cinza = sem treino",

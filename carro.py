@@ -14,7 +14,9 @@ from importlib import import_module
 
 rede = import_module("02_rede")  # reaproveita a rede do passo 2
 
-VELOCIDADE = 4.0           # pixels por quadro (fixa: a rede só controla o volante)
+VELOCIDADE = 4.0           # pixels por quadro: velocidade fixa (rede antiga) e velocidade de largada
+VEL_MIN, VEL_MAX = 1.5, 8.0   # limites quando a rede controla o acelerador
+ACELERACAO = 0.15          # quanto a velocidade muda por quadro com o pedal todo apertado
 VIRADA_MAX = 0.08          # radianos por quadro com o volante todo para um lado
 ALCANCE_SENSOR = 150       # até onde o sensor enxerga
 
@@ -46,6 +48,7 @@ class Carro:
         self.pista = pista
         self.x, self.y = pista.largada()
         self.angulo = pista.angulo_largada  # olhando na direção da pista
+        self.velocidade = VELOCIDADE
         self.vivo = True
         self.quadros_vivo = 0
         self.progresso = 0.0                # radianos percorridos em volta da pista
@@ -87,11 +90,16 @@ class Carro:
             return
         self.quadros_vivo += 1
         self.ler_sensores()
-        volante = rede.pensar(self.genoma, self.sensores)   # <- AQUI o cérebro decide
+        saidas = rede.pensar(self.genoma, self.sensores)    # <- AQUI o cérebro decide
+        volante = saidas[0]
+        if len(saidas) > 1:                                 # a segunda saída é o acelerador (freio se negativo)
+            self.velocidade = min(VEL_MAX, max(VEL_MIN, self.velocidade + saidas[1] * ACELERACAO))
 
+        # a curva mais fechada que o carro faz tem raio = velocidade / VIRADA_MAX: quanto mais
+        # rápido, mais aberta a curva. Para fazer curva fechada é preciso frear.
         self.angulo += volante * VIRADA_MAX
-        self.x += math.cos(self.angulo) * VELOCIDADE
-        self.y += math.sin(self.angulo) * VELOCIDADE
+        self.x += math.cos(self.angulo) * self.velocidade
+        self.y += math.sin(self.angulo) * self.velocidade
 
         # bateu se QUALQUER quina do corpo saiu do asfalto
         if not all(self.pista.na_pista(*self._ponto(f, d)) for f, d in QUINAS):

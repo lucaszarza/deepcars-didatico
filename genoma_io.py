@@ -5,7 +5,7 @@ O "conhecimento" de um carro é só a lista de pesos da rede (o genoma).
 Por isso um campeão cabe num arquivo JSON de poucas linhas:
 
     {
-      "n_pesos": 55,
+      "n_pesos": 62,
       "info": {"geracao": 12, "voltas": 4.9, "pista": "treino"},
       "genoma": [0.31, -1.2, ...]
     }
@@ -33,9 +33,10 @@ def carregar_campeao(caminho):
     genoma = dados.get("genoma")
     if not isinstance(genoma, list) or not all(isinstance(p, (int, float)) for p in genoma):
         raise ValueError(f"{caminho}: o campo 'genoma' deve ser uma lista de números")
-    if len(genoma) != rede.N_PESOS:
+    if not rede.genoma_valido(genoma):
         raise ValueError(
-            f"{caminho}: tem {len(genoma)} pesos, mas a rede atual precisa de {rede.N_PESOS}. "
+            f"{caminho}: tem {len(genoma)} pesos, mas a rede atual precisa de {rede.N_PESOS} "
+            f"(ou {rede.N_PESOS_SO_VOLANTE}, da rede antiga sem acelerador). "
             "O campeão foi treinado com outro número de sensores ou neurônios."
         )
     return [float(p) for p in genoma], dados.get("info", {})
