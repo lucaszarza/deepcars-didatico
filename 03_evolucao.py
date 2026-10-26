@@ -34,7 +34,9 @@ Rode:    .venv/bin/python 03_evolucao.py
 Opções:  --geracoes N          para depois de N gerações
          --pistas a,b,c        pistas de treino, separadas por vírgula (veja pista.py)
          --aleatorias N        sorteia N pistas novas a cada geração (ignora --pistas)
-         --largura-min PX      largura mínima das pistas sorteadas (padrão 60)
+         --autodromos N        como --aleatorias, mas com circuitos de autódromo (circuito.py)
+         --dificeis            com --autodromos: circuitos mais travados e estreitos
+         --largura-min PX      largura mínima das pistas sorteadas (padrão 60 nos anéis, 55 nos autódromos)
          --sem-janela          treina sem desenhar, muito mais rápido
          --turbo               abre a janela já em modo turbo
 Exemplo: .venv/bin/python 03_evolucao.py --pistas treino,suave,muitas_curvas
@@ -50,6 +52,7 @@ import genoma_io
 import grafico
 import sprite
 from carro import Carro, rede
+from circuito import DIFICIL, circuito_aleatorio
 from pista import PISTAS, pista_aleatoria
 
 # ----------------------------- configurações -----------------------------
@@ -215,7 +218,7 @@ def main(args):
                             genoma_io.salvar_campeao(
                                 CAMINHO_CAMPEAO, genomas[i_melhor],
                                 geracao=geracao, voltas=round(melhor_nota, 3),
-                                pistas=["aleatorias"] if args.aleatorias else [p.nome for p in pistas],
+                                pistas=[TIPO_SORTEIO] if args.aleatorias else [p.nome for p in pistas],
                             )
                         por_pista = " | ".join(
                             f"{p.nome} {grupo[i_melhor].voltas:.2f}" for p, grupo in zip(pistas, grupos))
@@ -243,7 +246,7 @@ def main(args):
                 (media, completou, genoma), total = escolher_por_validacao(elite_atual)
                 genoma_io.salvar_campeao(
                     CAMINHO_CAMPEAO, genoma, geracao=geracao, voltas=round(media, 3),
-                    pistas=["aleatorias"], validacao=f"{completou}/{total} pistas novas completas",
+                    pistas=[TIPO_SORTEIO], validacao=f"{completou}/{total} pistas novas completas",
                 )
                 print(f"Campeão escolhido pela validação: {completou}/{total} pistas novas completas")
             if hist_melhor:
@@ -251,11 +254,18 @@ def main(args):
                 print(f"\nSalvo em {PASTA}/: campeao.json, historico.csv, curva_aprendizado.png")
 
 
-LARGURA_MIN_SORTEIO = 60   # largura mínima das pistas sorteadas (--largura-min)
+LARGURA_MIN_SORTEIO = None     # largura mínima das pistas sorteadas (--largura-min); None = padrão de cada tipo
+AUTODROMO_DIFICIL = False      # --dificeis: circuitos mais travados e estreitos
+TIPO_SORTEIO = "aleatorias"    # "aleatorias" = anéis ondulados, "autodromos" = circuitos (--autodromos)
 
 
 def sortear_pistas(quantidade):
-    return [pista_aleatoria(f"sorteada_{i + 1}", LARGURA_MIN_SORTEIO) for i in range(quantidade)]
+    if TIPO_SORTEIO == "autodromos":
+        opcoes = dict(DIFICIL) if AUTODROMO_DIFICIL else {}
+        if LARGURA_MIN_SORTEIO:
+            opcoes["largura_min"] = LARGURA_MIN_SORTEIO
+        return [circuito_aleatorio(f"sorteada_{i + 1}", **opcoes) for i in range(quantidade)]
+    return [pista_aleatoria(f"sorteada_{i + 1}", LARGURA_MIN_SORTEIO or 60) for i in range(quantidade)]
 
 
 def lista_de_pistas(texto):
@@ -273,11 +283,19 @@ if __name__ == "__main__":
                             help="pistas de treino, separadas por vírgula (padrão: treino)")
     analisador.add_argument("--aleatorias", type=int, default=0, metavar="N",
                             help="sorteia N pistas novas a cada geração (ignora --pistas)")
-    analisador.add_argument("--largura-min", type=int, default=60, metavar="PX",
-                            help="largura mínima das pistas sorteadas, de 60 a 95 por padrão (a 'estreita' tem 50)")
+    analisador.add_argument("--autodromos", type=int, default=0, metavar="N",
+                            help="como --aleatorias, mas sorteia N circuitos de autódromo (retas, grampos, chicanes)")
+    analisador.add_argument("--dificeis", action="store_true",
+                            help="com --autodromos: circuitos com mais curvas, curvas no limite do carro e asfalto estreito")
+    analisador.add_argument("--largura-min", type=int, default=None, metavar="PX",
+                            help="largura mínima das pistas sorteadas (padrão: 60 nos anéis, 55 nos autódromos)")
     analisador.add_argument("--sem-janela", action="store_true", help="treina sem desenhar (rápido)")
     analisador.add_argument("--turbo", action="store_true", help="já começa em modo turbo (ESPAÇO alterna)")
     argumentos = analisador.parse_args()
     LARGURA_MIN_SORTEIO = argumentos.largura_min
+    if argumentos.autodromos:
+        TIPO_SORTEIO = "autodromos"
+        AUTODROMO_DIFICIL = argumentos.dificeis
+        argumentos.aleatorias = argumentos.autodromos
     main(argumentos)
     pygame.quit()

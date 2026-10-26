@@ -27,6 +27,8 @@ CENTRO = (450, 350)
 
 
 class Pista:
+    angulo_largada = -math.pi / 2   # o carro larga olhando para cima
+
     def __init__(self, nome, raio_medio, ondulacao, largura, curvas):
         self.nome = nome
         self.raio_medio = raio_medio
@@ -41,6 +43,10 @@ class Pista:
         distancia = math.hypot(x - CENTRO[0], y - CENTRO[1])
         angulo = math.atan2(y - CENTRO[1], x - CENTRO[0])
         return abs(distancia - self.raio_do_meio(angulo)) < self.largura / 2
+
+    def fase(self, x, y, anterior):
+        """Onde o carro está ao longo da pista, como ângulo em volta do centro (uma volta = 2π)."""
+        return math.atan2(y - CENTRO[1], x - CENTRO[0])
 
     def largada(self):
         # em ângulo 0 o cosseno vale 1: o carro larga no ponto mais externo,

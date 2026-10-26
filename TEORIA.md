@@ -303,6 +303,23 @@ O que isso mostra:
 - Total de pistas fixas completadas: 15 de 25, contra 12 de 25 antes. A diferença é pequena e com 5 amostras não é conclusiva. O ganho claro está na `estreita`.
 - Lição: **cobrir a variação do mundo real nos dados de treino** importa mais do que treinar por mais tempo.
 
+### H. Circuitos de autódromo (implementado)
+**O que é:** em vez de anéis ondulados, o traçado é uma curva fechada qualquer, com chicanes, curvas fechadas e trechos mais retos (`circuito.py`).
+**Como é feito:** sorteiam-se de 8 a 14 pontos de controle e uma curva suave passa por eles. Onde a curva faz uma dobra mais fechada do que o carro consegue (o carro anda a 4 px por quadro e vira no máximo 0,08 rad, então o menor raio é 50 px), ela é aberta. As curvas que já eram possíveis ficam como estão, então sobram curvas no limite do carro. A versão `--dificeis` tem mais pontos de controle, raio mínimo 56 e asfalto de 46 a 64 px.
+**O que muda no código:** o carro só pergunta à pista "onde estou ao longo do traçado?" (`fase`), em vez de calcular o ângulo em volta do centro. Assim o mesmo carro e o mesmo treino servem para anéis e circuitos.
+
+**Resultado (uma execução de cada treino, 60 gerações, validação em 12 pistas novas):**
+
+| campeão treinado em | anéis fixos | 5 autódromos | 5 autódromos difíceis |
+|---|---|---|---|
+| anéis aleatórios (`exemplos/campeao_aleatorias.json`) | 5/5 | 4/5 | **0/5** |
+| autódromos normais | 1/5 | 5/5 | 5/5 |
+| autódromos difíceis | 2/5 | 5/5 | 5/5 |
+
+- A transferência **não é simétrica**. O campeão treinado em anéis dirige quase todos os autódromos normais, mas não os difíceis. Os campeões treinados em autódromos dirigem todos os autódromos, mas falham em boa parte dos anéis.
+- Os autódromos difíceis ainda não são difíceis para quem treinou neles (5/5). O que limita a dificuldade hoje é a velocidade fixa: o carro só controla o volante.
+- Ressalva: cada linha da tabela é uma única execução, e já vimos que isso engana. Faltam as repetições.
+
 ### E. Gráfico de aprendizado (implementado)
 **O que é:** guardar o melhor fitness de cada geração e plotar uma curva.
 **O que você aprende:** a forma típica do aprendizado, com subida rápida no começo e depois um platô. Também permite comparar parâmetros com mais clareza do que "olhando a tela".

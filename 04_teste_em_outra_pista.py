@@ -24,6 +24,8 @@ O campeão usado é, nesta ordem:
     2. resultados/campeao.json         (criado por 03_evolucao.py)
     3. exemplos/campeao_exemplo.json   (já vem no repositório, se existir)
 
+    .venv/bin/python 04_teste_em_outra_pista.py --circuitos      os 5 circuitos de autódromo
+
 Teclas da janela:  1 a 5 = troca de pista | R = recomeça | ESPAÇO = turbo | ESC = sair
 """
 import argparse
@@ -36,12 +38,14 @@ import pygame
 import genoma_io
 import sprite
 from carro import Carro, rede
+from circuito import circuitos_fixos
 from pista import PISTAS
 
 LARGURA, ALTURA = 900, 700
 MAX_QUADROS = 1800        # o mesmo tempo máximo do treino
 N_ALEATORIOS = 30         # carros "sem treino" desenhados na janela
 N_BASE = 100              # carros aleatórios usados na tabela do relatório
+CONJUNTO = PISTAS         # as 5 pistas em anel; com --circuitos vira os 5 autódromos
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 CANDIDATOS = [
@@ -83,7 +87,7 @@ def relatorio(genoma, info):
     treinadas = info.get("pistas") or [info.get("pista")]
     print(f"{'pista':<14} | {'campeão':<36} | aleatórios que aguentaram (de {N_BASE})")
     print("-" * 88)
-    for pista in PISTAS.values():
+    for pista in CONJUNTO.values():
         campeao = correr(genoma, pista)
         # conta quantos cérebros SEM treino aguentam o tempo todo: com sorte alguns
         # aguentam, por isso o número de sobreviventes diz mais que "o melhor deles"
@@ -136,8 +140,8 @@ def janela(genoma, info, pista_inicial):
     fonte = pygame.font.SysFont("monospace", 16)
     relogio = pygame.time.Clock()
 
-    pistas = list(PISTAS.values())
-    indice = list(PISTAS).index(pista_inicial)
+    pistas = list(CONJUNTO.values())
+    indice = list(CONJUNTO).index(pista_inicial) if pista_inicial in CONJUNTO else 0
     campeao, aleatorios = nova_corrida(genoma, pistas[indice])
     quadro, turbo = 0, False
 
@@ -174,8 +178,12 @@ if __name__ == "__main__":
     analisador = argparse.ArgumentParser(description="Campeão em outra pista (passo 4)")
     analisador.add_argument("campeao", nargs="?", help="arquivo .json do campeão")
     analisador.add_argument("--relatorio", action="store_true", help="tabela no terminal, sem janela")
-    analisador.add_argument("--pista", choices=list(PISTAS), default="suave", help="pista inicial da janela")
+    analisador.add_argument("--circuitos", action="store_true", help="usa os 5 circuitos de autódromo em vez dos anéis")
+    analisador.add_argument("--dificeis", action="store_true", help="com --circuitos: os 5 circuitos difíceis")
+    analisador.add_argument("--pista", default="suave", help="pista inicial da janela (ex.: dificil, autodromo_3)")
     argumentos = analisador.parse_args()
+    if argumentos.circuitos:
+        CONJUNTO = circuitos_fixos(argumentos.dificeis)
 
     caminho = achar_campeao(argumentos.campeao)
     if caminho is None or not os.path.exists(caminho):

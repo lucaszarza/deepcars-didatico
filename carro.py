@@ -11,7 +11,6 @@ e a batida vale para o corpo inteiro (as quatro quinas), não só para o centro.
 import math
 from importlib import import_module
 
-from pista import CENTRO
 
 rede = import_module("02_rede")  # reaproveita a rede do passo 2
 
@@ -46,7 +45,7 @@ class Carro:
         self.genoma = genoma
         self.pista = pista
         self.x, self.y = pista.largada()
-        self.angulo = -math.pi / 2          # olhando para cima
+        self.angulo = pista.angulo_largada  # olhando na direção da pista
         self.vivo = True
         self.quadros_vivo = 0
         self.progresso = 0.0                # radianos percorridos em volta da pista
@@ -99,8 +98,8 @@ class Carro:
             self.vivo = False
             return
 
-        # quanto o carro avançou ao redor do centro desde o quadro anterior?
-        atual = math.atan2(self.y - CENTRO[1], self.x - CENTRO[0])
+        # quanto o carro avançou ao longo da pista desde o quadro anterior? (a pista diz a posição dele)
+        atual = self.pista.fase(self.x, self.y, self.angulo_anterior)
         delta = atual - self.angulo_anterior
         delta = (delta + math.pi) % (2 * math.pi) - math.pi  # corrige a volta de -pi para pi
         self.progresso += delta

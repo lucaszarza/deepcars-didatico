@@ -55,7 +55,9 @@ O passo 4 usa o campeão gravado por você em `resultados/campeao.json` e, se el
 | `--pistas A,B,C` | Pistas de treino, separadas por vírgula: `treino` (padrão), `suave`, `muitas_curvas`, `estreita`, `dificil`. Com mais de uma, cada cérebro corre em todas e a nota é a média |
 | `--sem-janela` | Treina sem desenhar, bem mais rápido |
 | `--aleatorias N` | Sorteia N pistas novas a cada geração (em vez de `--pistas`). No fim, a elite é testada em 12 pistas novas e o campeão é o melhor nessa validação |
-| `--largura-min PX` | Largura mínima das pistas sorteadas por `--aleatorias` (padrão 60; use 45 para cobrir a pista `estreita`) |
+| `--autodromos N` | Como `--aleatorias`, mas sorteia N circuitos de autódromo (retas, curvas, chicanes) |
+| `--dificeis` | Com `--autodromos`: mais curvas, curvas no limite do carro e asfalto estreito |
+| `--largura-min PX` | Largura mínima das pistas sorteadas (padrão 60 nos anéis, 55 nos autódromos; use 45 nos anéis para cobrir a `estreita`) |
 | `--turbo` | Abre a janela já em modo turbo |
 
 Exemplos:
@@ -64,6 +66,7 @@ Exemplos:
 .venv/bin/python 03_evolucao.py --sem-janela --geracoes 20
 .venv/bin/python 03_evolucao.py --pistas treino,suave,muitas_curvas   # treino em 3 pistas
 .venv/bin/python 03_evolucao.py --aleatorias 2 --geracoes 60           # pistas aleatórias
+.venv/bin/python 03_evolucao.py --autodromos 2 --dificeis --geracoes 60   # autódromos difíceis
 ```
 
 ### Opções do `04_teste_em_outra_pista.py`
@@ -73,6 +76,8 @@ Exemplos:
 | `ARQUIVO.json` | Usa outro campeão, em vez do padrão |
 | `--relatorio` | Mostra uma tabela no terminal, sem abrir janela |
 | `--pista NOME` | Pista em que a janela começa |
+| `--circuitos` | Usa os 5 circuitos de autódromo (`autodromo_1` a `5`) em vez dos anéis |
+| `--dificeis` | Com `--circuitos`: usa os 5 circuitos difíceis (`dificil_1` a `5`) |
 
 ### O que a simulação grava
 
@@ -93,7 +98,8 @@ Na pasta `resultados/`, criada ao rodar:
 04_teste_em_outra_pista.py   o campeão em outras pistas
 carro.py         o carro: sensores, cérebro e movimento
 sprite.py        o desenho do carrinho
-pista.py         as pistas
+pista.py         as pistas em anel
+circuito.py      os circuitos de autódromo
 genoma_io.py     salvar e carregar o campeão
 grafico.py       o gráfico de aprendizado
 exemplos/        três campeões prontos (uma pista, três pistas e pistas aleatórias) e a curva de um treino
