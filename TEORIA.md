@@ -318,7 +318,19 @@ O que isso mostra:
 
 - A transferência **não é simétrica**. O campeão treinado em anéis dirige quase todos os autódromos normais, mas não os difíceis. Os campeões treinados em autódromos dirigem todos os autódromos, mas falham em boa parte dos anéis.
 - Os autódromos difíceis ainda não são difíceis para quem treinou neles (5/5). O que limita a dificuldade hoje é a velocidade fixa: o carro só controla o volante.
-- Ressalva: cada linha da tabela é uma única execução, e já vimos que isso engana. Faltam as repetições.
+**Repetindo 5 vezes o treino nos autódromos difíceis:**
+
+| treino | validação | anéis fixos | 5 autódromos | 5 difíceis |
+|---|---|---|---|---|
+| 1 | 12/12 | 4/5 | 5/5 | 5/5 |
+| 2 | 11/12 | 2/5 | 5/5 | 5/5 |
+| 3 | 10/12 | 1/5 | 5/5 | 5/5 |
+| 4 | 12/12 | 1/5 | 5/5 | 5/5 |
+| 5 | 12/12 | 1/5 | 5/5 | 5/5 |
+
+- Nos circuitos, o resultado se **repete**: os 5 treinos completaram os 10 circuitos fixos (os 5 normais e os 5 difíceis). Diferente dos anéis, aqui o resultado não depende da sorte do treino.
+- Nos anéis a variação é grande (1 a 4 em 5). A assimetria é real, mas a causa não foi investigada. Quase todos os fracassos em anéis são batidas logo no começo (cerca de 0,2 volta).
+- Os circuitos difíceis são difíceis para um cérebro sem treino (0 de 500 completaram), mas não para quem treinou neles. Para dificultar de verdade falta controlar a velocidade (freio e acelerador).
 
 ### E. Gráfico de aprendizado (implementado)
 **O que é:** guardar o melhor fitness de cada geração e plotar uma curva.
