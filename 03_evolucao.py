@@ -133,8 +133,13 @@ def desenhar(tela, fonte, fonte_pequena, pistas, visivel, grupos, geracao, recor
     pista.desenhar(tela)
 
     melhor = max(carros, key=lambda c: c.voltas)
+    # os 10 melhores (entre os vivos) aparecem em cor e por cima; o resto fica apagado ao fundo
+    destaques = sorted((i for i, c in enumerate(carros) if c.vivo), key=lambda i: carros[i].voltas)[-10:]
     for i, c in enumerate(carros):
-        sprite.desenhar_carro(tela, c, sprite.cor_do_carro(i), destaque=(c is melhor))
+        if i not in destaques:
+            sprite.desenhar_carro(tela, c, sprite.COR_APAGADO)
+    for i in destaques:
+        sprite.desenhar_carro(tela, carros[i], sprite.cor_do_carro(i), destaque=(carros[i] is melhor))
 
     # mostra os sensores do melhor carro vivo, para entender o que ele "vê"
     if melhor.vivo:

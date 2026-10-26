@@ -13,6 +13,7 @@ import pygame
 from carro import COMPRIMENTO, LARGURA_CARRO
 
 COR_MORTO = (80, 55, 55)
+COR_APAGADO = (62, 62, 72)    # carros fora do top 10: aparecem, mas sem chamar atenção
 _cache = {}
 
 
