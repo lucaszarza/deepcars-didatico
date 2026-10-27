@@ -348,7 +348,21 @@ O que isso mostra:
 
 - Ir mais rápido custou confiabilidade: o campeão com acelerador bateu em um dos 5 difíceis (aos 3 voltas) e completou 11 de 12 pistas na validação.
 - A curva de aprendizado ficou **bem mais ruidosa**: a nota do melhor oscila entre 6 e 11 de uma geração para outra, porque pistas diferentes premiam velocidades diferentes.
-- Ressalva: é uma única execução, e já vimos que isso engana. Faltam as repetições.
+**Repetindo 5 vezes (100 gerações cada):**
+
+| treino | validação | anéis | 5 autódromos | 5 difíceis | voltas nos normais |
+|---|---|---|---|---|---|
+| 1 | 8/12 | 1/5 | 5/5 | 3/5 | 10 a 16 |
+| 2 | 10/12 | 1/5 | 5/5 | 4/5 | 10 a 16 |
+| 3 | 5/12 | 1/5 | 5/5 | 2/5 | 10 a 16 |
+| 4 | 8/12 | 1/5 | 5/5 | 3/5 | 10 a 16 |
+| 5 | 8/12 | 1/5 | 5/5 | 3/5 | 10 a 16 |
+
+- **O ganho de velocidade é consistente.** Os 5 treinos fazem cerca de o dobro de voltas dos campeões de velocidade fixa (5 a 6) nos 5 autódromos normais, e completam todos eles.
+- **O custo também é consistente.** Os campeões de velocidade fixa completavam os 5 difíceis em 5 de 5 treinos. Com acelerador, a média é 3 de 5 (de 2 a 4). Os circuitos `dificil_4` e `dificil_5` falham em quase todos, geralmente logo no começo (menos de 1 volta no `dificil_5`).
+- **Nos anéis, só a `suave` é completada**, por todos os 5. Os outros 4 anéis batem em menos de 1 volta. Quem treinou com velocidade variável em circuitos não dirige anéis.
+- **A validação piorou**: de 5 a 10 de 12 pistas novas, contra 10 a 12 com velocidade fixa.
+- Lição: **não existe ganho de graça**. Dar liberdade de velocidade rendeu o dobro de voltas, mas o treino de 100 gerações não encontrou como ser rápido e seguro ao mesmo tempo em curvas muito fechadas. Mais gerações, uma população maior ou a velocidade como entrada da rede seriam os próximos testes (não feitos).
 
 ### E. Gráfico de aprendizado (implementado)
 **O que é:** guardar o melhor fitness de cada geração e plotar uma curva.
